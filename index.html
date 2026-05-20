@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Opportunity Tracker</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: #f5f5f5;
+        padding: 30px;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    input, select, textarea, button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 8px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        cursor: pointer;
+        background: black;
+        color: white;
+        border: none;
+    }
+
+    button:hover {
+        opacity: 0.9;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
+        gap: 15px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border-bottom: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+    }
+
+    th {
+        background: #eee;
+    }
+
+    .status {
+        padding: 6px 10px;
+        border-radius: 8px;
+        color: white;
+        font-size: 13px;
+    }
+
+    .Applied { background: #3498db; }
+    .OA { background: #f39c12; }
+    .Interview { background: #9b59b6; }
+    .Rejected { background: #e74c3c; }
+    .Offer { background: #2ecc71; }
+
+    a {
+        color: blue;
+    }
+
+    .delete-btn {
+        background: crimson;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: none;
+        color: white;
+        cursor: pointer;
+    }
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Internship / Job Opportunity Tracker</h1>
+
+    <div class="card">
+        <h2>Add Opportunity</h2>
+
+        <div class="grid">
+
+            <div>
+                <label>Company</label>
+                <input type="text" id="company" placeholder="Microsoft">
+            </div>
+
+            <div>
+                <label>Role</label>
+                <input type="text" id="role" placeholder="Software Engineer Intern">
+            </div>
+
+            <div>
+                <label>Portal / Link</label>
+                <input type="text" id="link" placeholder="https://careers.microsoft.com">
+            </div>
+
+            <div>
+                <label>Status</label>
+                <select id="status">
+                    <option>Applied</option>
+                    <option>OA</option>
+                    <option>Interview</option>
+                    <option>Rejected</option>
+                    <option>Offer</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Priority</label>
+                <select id="priority">
+                    <option>High</option>
+                    <option>Medium</option>
+                    <option>Low</option>
+                </select>
+            </div>
+
+        </div>
+
+        <label>Notes</label>
+        <textarea id="notes"
+            placeholder="Referral? Resume version? DSA asked? Deadline?"></textarea>
+
+        <button onclick="addOpportunity()">Add Opportunity</button>
+    </div>
+
+    <div class="card">
+        <h2>Search</h2>
+        <input type="text" id="search" placeholder="Search company or role..." onkeyup="renderTable()">
+    </div>
+
+    <div class="card">
+        <h2>Applications</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Portal</th>
+                    <th>Notes</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+
+let opportunities =
+JSON.parse(localStorage.getItem("opportunities")) || [];
+
+function saveData() {
+    localStorage.setItem(
+        "opportunities",
+        JSON.stringify(opportunities)
+    );
+}
+
+function addOpportunity() {
+
+    const company =
+        document.getElementById("company").value;
+
+    const role =
+        document.getElementById("role").value;
+
+    const link =
+        document.getElementById("link").value;
+
+    const status =
+        document.getElementById("status").value;
+
+    const priority =
+        document.getElementById("priority").value;
+
+    const notes =
+        document.getElementById("notes").value;
+
+    if(company === "" || role === "") {
+        alert("Company and role required");
+        return;
+    }
+
+    opportunities.push({
+        company,
+        role,
+        link,
+        status,
+        priority,
+        notes
+    });
+
+    saveData();
+    renderTable();
+
+    document.getElementById("company").value = "";
+    document.getElementById("role").value = "";
+    document.getElementById("link").value = "";
+    document.getElementById("notes").value = "";
+}
+
+function deleteOpportunity(index) {
+    opportunities.splice(index, 1);
+    saveData();
+    renderTable();
+}
+
+function renderTable() {
+
+    const search =
+    document.getElementById("search")
+    .value.toLowerCase();
+
+    const body =
+    document.getElementById("tableBody");
+
+    body.innerHTML = "";
+
+    opportunities.forEach((item, index) => {
+
+        if(
+            !item.company.toLowerCase().includes(search)
+            &&
+            !item.role.toLowerCase().includes(search)
+        ) {
+            return;
+        }
+
+        body.innerHTML += `
+            <tr>
+                <td>${item.company}</td>
+                <td>${item.role}</td>
+
+                <td>
+                    <span class="status ${item.status}">
+                        ${item.status}
+                    </span>
+                </td>
+
+                <td>${item.priority}</td>
+
+                <td>
+                    <a href="${item.link}" target="_blank">
+                        Open
+                    </a>
+                </td>
+
+                <td>${item.notes}</td>
+
+                <td>
+                    <button
+                    class="delete-btn"
+                    onclick="deleteOpportunity(${index})">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+renderTable();
+
+</script>
+
+</body>
+</html>
